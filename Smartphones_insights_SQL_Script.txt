@@ -1,0 +1,115 @@
+-- Retrieve all smartphone records
+SELECT * FROM smartphones;
+
+-- Display only the following columns:
+-- Brands, Models, Selling Price
+SELECT brands, models, selling_Price FROM smartphones;
+
+-- Find all smartphones where: Brand = Samsung  
+SELECT * FROM smartphones WHERE Brands = 'samsung';
+
+-- List smartphones with:
+-- Selling Price greater than 50,000
+SELECT * FROM smartphones WHERE Selling_Price > 50000;
+
+-- Find smartphones with:
+-- RAM greater than or equal to 8GB
+SELECT * FROM smartphones WHERE RAM >= 8;
+
+-- Sort all smartphones by:
+-- Selling Price in descending order
+SELECT * FROM smartphones ORDER BY Selling_Price DESC;
+
+-- Total number of smartphones in the dataset
+SELECT COUNT(models) FROM smartphones;
+
+-- minimum and maximum selling price
+SELECT MIN(Selling_Price), MAX(Selling_Price) FROM smartphones;
+
+-- average selling price for each brand.
+SELECT Brands, ROUND(AVG(Selling_price),2) FROM smartphones GROUP BY Brands;
+
+-- Count of how many smartphones each brand has
+SELECT Brands, COUNT(models) as Total_phones FROM smartphones GROUP BY Brands ORDER BY Total_phones DESC;
+
+-- average rating for each price category
+SELECT Price_Category, ROUND(AVG(rating),2) as AVG_Rating FROM smartphones GROUP BY Price_Category ORDER BY AVG_Rating DESC;
+
+-- total savings provided by each brand
+SELECT Brands, SUM(savings) as total_savings FROM smartphones GROUP BY Brands ORDER BY total_savings DESC;
+
+-- number of smartphones in each Price_Category
+SELECT Price_Category, COUNT(models) as smartphones FROM smartphones GROUP BY Price_Category ORDER BY smartphones DESC; 
+
+-- brands that have more than 10 smartphones
+SELECT Brands as Total_phones FROM smartphones GROUP BY Brands HAVING COUNT(models) > 10;
+
+-- brand with the highest average rating
+SELECT Brands, ROUND(AVG(Rating),2) as AVG_Rating FROM smartphones GROUP BY Brands ORDER BY AVG_Rating DESC LIMIT 1; 
+
+-- top 5 most expensive smartphones
+SELECT Brands, models, selling_price FROM smartphones ORDER BY selling_price DESC LIMIT 5;
+
+-- cheapest smrtphone for each brand
+SELECT s.Brands, s.models, s.`selling_price` FROM smartphones s WHERE s.`selling_price` = 
+(SELECT MIN(`selling_price`) FROM smartphones WHERE Brands = s.Brands);
+
+-- smartphones that have:
+-- Discount percentage greater than the average discount percentage
+SELECT product_ID,
+       Brands,
+       Models,
+       `Selling_Price`,
+       `discount_percentage` FROM smartphones 
+WHERE discount_percentage > (SELECT AVG(`discount_percentage`) FROM smartphones) ORDER BY `discount_percentage` DESC;
+
+-- total revenue potential if all smartphones are sold
+SELECT SUM(Selling_Price) as Total_Revenue FROM smartphones;
+
+-- Percentage of Smartphones with Discounts
+SELECT ROUND((COUNT(CASE WHEN Has_Discount = 1 THEN 1 END) * 100 / COUNT(*)),2) AS Discount_Percentage FROM smartphones;
+
+-- Smartphones Whose Rating is Higher Than the Average Rating of Their Brand
+SELECT s.product_ID,
+       s.Brands,
+       s.Models,
+       s.Rating
+FROM smartphones s
+WHERE s.Rating > (SELECT AVG(Rating) FROM smartphones WHERE Brands = s.Brands);
+
+-- Rank Smartphones Within Each Brand Based on Selling Price (Highest to Lowest)
+SELECT Brands, 
+	   models, 
+       `Selling_price`, 
+       ROW_NUMBER() OVER (
+		   PARTITION BY Brands 
+           ORDER BY `Selling_Price` DESC
+	   ) as Price_Rank 
+FROM smartphones;
+
+-- Second Most expensive smartphone of each brand
+SELECT Brands,
+       Models,
+       `Selling_Price`
+FROM (
+    SELECT Brands,
+           Models,
+           `Selling_Price`,
+           ROW_NUMBER() OVER (
+               PARTITION BY Brands
+               ORDER BY `Selling_Price` DESC
+           ) AS price_rank
+    FROM smartphones
+) ranked
+WHERE price_rank = 2;
+
+-- Cumulative Average Selling Price Ordered by Price
+SELECT Product_ID,
+       Brands,
+       Models,
+       `Selling_Price`,
+       AVG(`Selling_Price`) OVER (
+           ORDER BY `Selling_Price`
+           ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+       ) AS Cumulative_Avg_Price
+FROM smartphones;
